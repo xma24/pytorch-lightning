@@ -520,7 +520,9 @@ class TrainerDPMixin(ABC):
         model.cuda(self.root_gpu)
 
         # hack forward to do autocast for the user
+        model_autocast_original_forward = model.forward
         if self.use_amp and self.use_native_amp:
+            # wrap the user's forward in autocast and give it back at the end
             model.forward = torch.cuda.amp.autocast()(model.forward)
 
         # TODO: remove in v0.8.0
@@ -546,6 +548,9 @@ class TrainerDPMixin(ABC):
         model = LightningDataParallel(model, device_ids=device_ids)
 
         self.run_pretrain_routine(model)
+
+        # when training completes give back the forward
+        model.forward = model_autocast_original_forward
 
 
 def normalize_parse_gpu_string_input(s):
