@@ -144,6 +144,7 @@ class TrainerDDPMixin(ABC):
     amp_level: str
     use_tpu: bool
     default_root_dir: str
+    use_native_amp: bool
 
     @property
     @abstractmethod
@@ -336,8 +337,8 @@ class TrainerDDPMixin(ABC):
 
         # AMP
         # run through amp wrapper before going to distributed DP
-        if self.use_amp:
-            # An example
+        # TODO: remove in v0.8.0
+        if self.use_amp and not self.use_native_amp:
             model, optimizers = model.configure_apex(amp, model, self.optimizers, self.amp_level)
             self.optimizers = optimizers
 
